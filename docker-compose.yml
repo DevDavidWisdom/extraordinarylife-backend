@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: extraordinary
+      POSTGRES_PASSWORD: extraordinary
+      POSTGRES_DB: extraordinarylife
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U extraordinary -d extraordinarylife"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://extraordinary:extraordinary@db:5432/extraordinarylife
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
