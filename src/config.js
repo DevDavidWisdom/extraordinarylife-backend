@@ -6,7 +6,7 @@ export const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   corsOrigins: (process.env.CORS_ORIGIN || 'http://localhost:3456')
     .split(',')
-    .map((s) => s.trim())
+    .map((s) => s.trim().replace(/\/$/, ''))
     .filter(Boolean),
   admin: {
     email: (process.env.ADMIN_EMAIL || 'admin@extraordinarylife.ng').toLowerCase(),
