@@ -26,6 +26,11 @@ export function monthKey(dateStr) {
   return `${y}-${String(m).padStart(2, '0')}`;
 }
 
+export function isSunday(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d).getDay() === 0;
+}
+
 export function getBookableDates() {
   const dates = [];
   const minBookable = new Date();
@@ -33,7 +38,8 @@ export function getBookableDates() {
   for (let i = 0; i < 90; i++) {
     const d = new Date(minBookable);
     d.setDate(minBookable.getDate() + i);
-    dates.push(formatDateISO(d));
+    const iso = formatDateISO(d);
+    if (!isSunday(iso)) dates.push(iso);
   }
   return dates;
 }

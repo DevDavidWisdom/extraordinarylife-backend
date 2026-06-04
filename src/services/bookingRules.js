@@ -6,6 +6,7 @@ import {
   isJune2026,
   monthKey,
   getBookableDates,
+  isSunday,
 } from '../utils/dates.js';
 
 function rowToBooking(row) {
@@ -88,7 +89,9 @@ export async function validateBooking(userId, seatId, dateStr, sessionType = nul
   }
 
   const bookable = getBookableDates();
-  if (!bookable.includes(dateStr)) {
+  if (isSunday(dateStr)) {
+    errors.push('Bookings are not available on Sundays.');
+  } else if (!bookable.includes(dateStr)) {
     errors.push('Selected date is outside the 90-day booking window.');
   }
 
