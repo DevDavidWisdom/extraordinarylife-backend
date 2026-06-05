@@ -64,12 +64,26 @@ router.post('/', async (req, res) => {
       return res.status(403).json({ error: 'Admins cannot create member bookings' });
     }
 
-    const { seatId, date, sessionType = 'half', termsAccepted } = req.body;
+    const {
+      seatId,
+      date,
+      sessionType = 'half',
+      startTime = '09:00',
+      endTime = '17:00',
+      termsAccepted,
+    } = req.body;
     if (!termsAccepted) {
       return res.status(400).json({ error: 'You must accept the Terms & Conditions.' });
     }
 
-    const validation = await validateBooking(req.user.id, seatId, date, sessionType);
+    const validation = await validateBooking(
+      req.user.id,
+      seatId,
+      date,
+      sessionType,
+      startTime,
+      endTime
+    );
     if (!validation.ok) {
       return res.status(400).json({ error: validation.errors[0], errors: validation.errors });
     }
@@ -82,8 +96,8 @@ router.post('/', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO bookings (
         user_id, seat_id, date, session_type, list_price, amount_paid, discount_percent,
-        payment_status, payment_ref, access_code, barcode_ref
-      ) VALUES ($1, $2, $3, $4, $5, 0, 100, 'paid', $6, $7, $8)
+        payment_status, payment_ref, access_code, barcode_ref, start_time, end_time
+      ) VALUES ($1, $2, $3, $4, $5, 0, 100, 'paid', $6, $7, $8, $9, $10)
       RETURNING *`,
       [
         req.user.id,
@@ -94,6 +108,8 @@ router.post('/', async (req, res) => {
         paymentRef,
         accessCode,
         barcodeRef,
+        startTime,
+        endTime,
       ]
     );
 

@@ -8,6 +8,7 @@ import {
   getBookableDates,
   isSunday,
 } from '../utils/dates.js';
+import { validateBookingTimes, pgTimeToStr } from '../utils/times.js';
 
 function rowToBooking(row) {
   if (!row) return null;
@@ -29,6 +30,8 @@ function rowToBooking(row) {
     checkedInAt: row.checked_in_at ? new Date(row.checked_in_at).getTime() : null,
     createdAt: new Date(row.created_at).getTime(),
     paidAt: new Date(row.paid_at).getTime(),
+    startTime: pgTimeToStr(row.start_time) || '09:00',
+    endTime: pgTimeToStr(row.end_time) || '17:00',
   };
 }
 
@@ -81,8 +84,17 @@ export function calculatePrice(seatId, sessionType) {
   return config.prices.desk;
 }
 
-export async function validateBooking(userId, seatId, dateStr, sessionType = null) {
+export async function validateBooking(
+  userId,
+  seatId,
+  dateStr,
+  sessionType = null,
+  startTime = null,
+  endTime = null
+) {
   const errors = [];
+  errors.push(...validateBookingTimes(startTime, endTime));
+
   const minDate = addDays(todayISO(), config.rules.minAdvanceDays);
   if (dateStr < minDate) {
     errors.push('Bookings must be made at least 1 day in advance.');

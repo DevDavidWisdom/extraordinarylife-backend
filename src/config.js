@@ -26,6 +26,10 @@ export const config = {
     juneMaxDays: 10,
     conferenceMaxPerMonth: 1,
   },
+  venueHours: {
+    open: '09:00',
+    close: '17:00',
+  },
 };
 
 export function isConference(seatId) {
