@@ -53,6 +53,39 @@ router.get('/bookings', async (req, res) => {
   }
 });
 
+router.get('/members/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT m.id, m.full_name, m.email, m.phone, m.organisation, m.photo, m.created_at,
+              COUNT(b.id) FILTER (WHERE b.payment_status = 'paid')::int AS booking_count
+       FROM members m
+       LEFT JOIN bookings b ON b.user_id = m.id
+       WHERE m.id = $1
+       GROUP BY m.id`,
+      [req.params.id]
+    );
+    if (!rows[0]) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+    const r = rows[0];
+    res.json({
+      member: {
+        id: r.id,
+        fullName: r.full_name,
+        email: r.email,
+        phone: r.phone,
+        organisation: r.organisation,
+        photo: r.photo,
+        bookingCount: r.booking_count,
+        createdAt: new Date(r.created_at).getTime(),
+      },
+    });
+  } catch (err) {
+    console.error('admin member get', err);
+    res.status(500).json({ error: 'Failed to load member' });
+  }
+});
+
 router.get('/members', async (req, res) => {
   try {
     const { page, limit, offset } = parsePage(req.query);
@@ -62,7 +95,7 @@ router.get('/members', async (req, res) => {
     const [countRes, listRes] = await Promise.all([
       pool.query('SELECT COUNT(*)::int AS c FROM members'),
       pool.query(
-        `SELECT m.id, m.full_name, m.email, m.phone, m.organisation, m.photo,
+        `SELECT m.id, m.full_name, m.email, m.phone, m.organisation,
                 COUNT(b.id) FILTER (WHERE b.payment_status = 'paid')::int AS booking_count
          FROM members m
          LEFT JOIN bookings b ON b.user_id = m.id
@@ -80,7 +113,6 @@ router.get('/members', async (req, res) => {
       email: r.email,
       phone: r.phone,
       organisation: r.organisation,
-      photo: r.photo,
       bookingCount: r.booking_count,
     }));
 
