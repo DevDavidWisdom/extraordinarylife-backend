@@ -8,15 +8,22 @@ import {
   getSeatStatuses,
   rowToBooking,
 } from '../services/bookingRules.js';
-import { buildBarcodeRef, generateCode6, getBookableDates } from '../utils/dates.js';
+import { buildBarcodeRef, generateCode6 } from '../utils/dates.js';
+import { getBookableDatesForApi } from '../services/bookingRules.js';
 import { isConference } from '../config.js';
 
 const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/dates', (_req, res) => {
-  res.json({ dates: getBookableDates() });
+router.get('/dates', async (_req, res) => {
+  try {
+    const dates = await getBookableDatesForApi();
+    res.json({ dates });
+  } catch (err) {
+    console.error('bookable dates', err);
+    res.status(500).json({ error: 'Failed to load bookable dates' });
+  }
 });
 
 router.get('/', async (req, res) => {

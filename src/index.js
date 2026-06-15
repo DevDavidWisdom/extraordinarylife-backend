@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js';
 import bookingsRoutes from './routes/bookings.js';
 import adminRoutes from './routes/admin.js';
 import maintenanceRoutes from './routes/maintenance.js';
+import blockedDatesRoutes from './routes/blockedDates.js';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get('/api/me', authMiddleware, (req, res) => {
 app.use('/api/bookings', bookingsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/blocked-dates', blockedDatesRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });

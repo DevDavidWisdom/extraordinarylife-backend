@@ -7,7 +7,6 @@ import {
   monthKey,
   getBookableDates,
   isSunday,
-  isBlockedDate,
 } from '../utils/dates.js';
 import { validateBookingTimes, pgTimeToStr } from '../utils/times.js';
 
@@ -78,6 +77,18 @@ async function countUserConferenceInMonth(userId, dateStr) {
   return rows[0].c;
 }
 
+export async function getBlockedDateIds() {
+  const { rows } = await pool.query(
+    'SELECT date::text AS date FROM blocked_dates ORDER BY date'
+  );
+  return rows.map((r) => r.date.slice(0, 10));
+}
+
+export async function getBookableDatesForApi() {
+  const blocked = await getBlockedDateIds();
+  return getBookableDates(blocked);
+}
+
 export function calculatePrice(seatId, sessionType) {
   if (isConference(seatId)) {
     return sessionType === 'full' ? config.prices.conferenceFull : config.prices.conferenceHalf;
@@ -101,10 +112,11 @@ export async function validateBooking(
     errors.push('Bookings must be made at least 1 day in advance.');
   }
 
-  const bookable = getBookableDates();
+  const bookable = await getBookableDatesForApi();
+  const blocked = await getBlockedDateIds();
   if (isSunday(dateStr)) {
     errors.push('Bookings are not available on Sundays.');
-  } else if (isBlockedDate(dateStr)) {
+  } else if (blocked.includes(dateStr)) {
     errors.push('This date is not available for booking.');
   } else if (!bookable.includes(dateStr)) {
     errors.push('Selected date is outside the 90-day booking window.');

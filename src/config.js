@@ -25,7 +25,6 @@ export const config = {
     calendarDays: 90,
     juneMaxDays: 10,
     conferenceMaxPerMonth: 1,
-    blockedDates: ['2026-06-25'],
   },
   venueHours: {
     open: '09:00',

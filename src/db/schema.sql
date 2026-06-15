@@ -46,3 +46,11 @@ CREATE TABLE IF NOT EXISTS maintenance_seats (
   seat_id TEXT PRIMARY KEY,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS blocked_dates (
+  date DATE PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO blocked_dates (date) VALUES ('2026-06-25')
+ON CONFLICT (date) DO NOTHING;

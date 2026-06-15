@@ -1,9 +1,3 @@
-import { config } from '../config.js';
-
-export function isBlockedDate(dateStr) {
-  return config.rules.blockedDates.includes(dateStr);
-}
-
 export function todayISO() {
   return formatDateISO(new Date());
 }
@@ -37,7 +31,8 @@ export function isSunday(dateStr) {
   return new Date(y, m - 1, d).getDay() === 0;
 }
 
-export function getBookableDates() {
+export function getBookableDates(blockedDates = []) {
+  const blocked = new Set(blockedDates);
   const dates = [];
   const minBookable = new Date();
   minBookable.setDate(minBookable.getDate() + 1);
@@ -45,7 +40,7 @@ export function getBookableDates() {
     const d = new Date(minBookable);
     d.setDate(minBookable.getDate() + i);
     const iso = formatDateISO(d);
-    if (!isSunday(iso) && !isBlockedDate(iso)) dates.push(iso);
+    if (!isSunday(iso) && !blocked.has(iso)) dates.push(iso);
   }
   return dates;
 }
