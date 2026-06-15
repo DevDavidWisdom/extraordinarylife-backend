@@ -35,11 +35,56 @@ function rowToBooking(row) {
   };
 }
 
-export async function getAllBookingsRows() {
+export async function getAllBookingsRows(limit = 20, offset = 0) {
   const { rows } = await pool.query(
-    `SELECT * FROM bookings WHERE payment_status = 'paid' ORDER BY created_at DESC`
+    `SELECT b.*, m.full_name AS member_name
+     FROM bookings b
+     LEFT JOIN members m ON m.id = b.user_id
+     WHERE b.payment_status = 'paid'
+     ORDER BY b.created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
-  return rows.map(rowToBooking);
+  return rows.map((row) => ({
+    ...rowToBooking(row),
+    memberName: row.member_name,
+  }));
+}
+
+export async function countAllBookings() {
+  const { rows } = await pool.query(
+    `SELECT COUNT(*)::int AS c FROM bookings WHERE payment_status = 'paid'`
+  );
+  return rows[0].c;
+}
+
+export async function getJuneQuotaPage(limit = 15, offset = 0) {
+  const { rows } = await pool.query(
+    `SELECT m.id AS user_id, m.full_name AS name,
+            COUNT(b.id) FILTER (
+              WHERE b.payment_status = 'paid'
+                AND b.seat_id != 'CONF'
+                AND EXTRACT(YEAR FROM b.date) = 2026
+                AND EXTRACT(MONTH FROM b.date) = 6
+            )::int AS used
+     FROM members m
+     LEFT JOIN bookings b ON b.user_id = m.id
+     GROUP BY m.id, m.full_name
+     ORDER BY used DESC, m.full_name
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
+  );
+  return rows.map((r) => ({
+    userId: r.user_id,
+    name: r.name,
+    used: r.used,
+    max: config.rules.juneMaxDays,
+  }));
+}
+
+export async function countJuneQuotaMembers() {
+  const { rows } = await pool.query('SELECT COUNT(*)::int AS c FROM members');
+  return rows[0].c;
 }
 
 export async function getMaintenanceSeatIds() {
@@ -200,18 +245,7 @@ export async function getTodayMetrics() {
 }
 
 export async function getJuneQuotaList() {
-  const { rows: members } = await pool.query('SELECT id, full_name FROM members ORDER BY full_name');
-  const list = [];
-  for (const m of members) {
-    const used = await countUserJuneBookings(m.id);
-    list.push({
-      userId: m.id,
-      name: m.full_name,
-      used,
-      max: config.rules.juneMaxDays,
-    });
-  }
-  return list.sort((a, b) => b.used - a.used);
+  return getJuneQuotaPage(10000, 0);
 }
 
 export { rowToBooking };

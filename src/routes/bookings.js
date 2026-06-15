@@ -4,7 +4,6 @@ import { authMiddleware, requireAdmin } from '../middleware/auth.js';
 import {
   validateBooking,
   calculatePrice,
-  getAllBookingsRows,
   getSeatStatuses,
   rowToBooking,
 } from '../services/bookingRules.js';
@@ -28,17 +27,14 @@ router.get('/dates', async (_req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    let bookings;
     if (req.user.role === 'admin') {
-      bookings = await getAllBookingsRows();
-    } else {
-      const { rows } = await pool.query(
-        `SELECT * FROM bookings WHERE user_id = $1 AND payment_status = 'paid' ORDER BY date DESC`,
-        [req.user.id]
-      );
-      bookings = rows.map(rowToBooking);
+      return res.json({ bookings: [] });
     }
-    res.json({ bookings });
+    const { rows } = await pool.query(
+      `SELECT * FROM bookings WHERE user_id = $1 AND payment_status = 'paid' ORDER BY date DESC`,
+      [req.user.id]
+    );
+    res.json({ bookings: rows.map(rowToBooking) });
   } catch (err) {
     console.error('list bookings', err);
     res.status(500).json({ error: 'Failed to load bookings' });
