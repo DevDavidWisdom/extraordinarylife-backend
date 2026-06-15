@@ -7,6 +7,7 @@ import {
   monthKey,
   getBookableDates,
   isSunday,
+  isBlockedDate,
 } from '../utils/dates.js';
 import { validateBookingTimes, pgTimeToStr } from '../utils/times.js';
 
@@ -103,6 +104,8 @@ export async function validateBooking(
   const bookable = getBookableDates();
   if (isSunday(dateStr)) {
     errors.push('Bookings are not available on Sundays.');
+  } else if (isBlockedDate(dateStr)) {
+    errors.push('This date is not available for booking.');
   } else if (!bookable.includes(dateStr)) {
     errors.push('Selected date is outside the 90-day booking window.');
   }
