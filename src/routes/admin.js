@@ -62,7 +62,7 @@ router.get('/members', async (req, res) => {
     const [countRes, listRes] = await Promise.all([
       pool.query('SELECT COUNT(*)::int AS c FROM members'),
       pool.query(
-        `SELECT m.id, m.full_name, m.email, m.phone, m.organisation,
+        `SELECT m.id, m.full_name, m.email, m.phone, m.organisation, m.photo,
                 COUNT(b.id) FILTER (WHERE b.payment_status = 'paid')::int AS booking_count
          FROM members m
          LEFT JOIN bookings b ON b.user_id = m.id
@@ -80,6 +80,7 @@ router.get('/members', async (req, res) => {
       email: r.email,
       phone: r.phone,
       organisation: r.organisation,
+      photo: r.photo,
       bookingCount: r.booking_count,
     }));
 
