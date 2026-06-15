@@ -30,6 +30,8 @@ export const config = {
     open: '09:00',
     close: '17:00',
   },
+  /** Dates that stay blocked; admins cannot remove these */
+  protectedBlockedDates: ['2026-06-25'],
 };
 
 export function isConference(seatId) {
