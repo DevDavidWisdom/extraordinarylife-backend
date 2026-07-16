@@ -54,3 +54,12 @@ CREATE TABLE IF NOT EXISTS blocked_dates (
 
 INSERT INTO blocked_dates (date) VALUES ('2026-06-25')
 ON CONFLICT (date) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS certifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  score NUMERIC NOT NULL,
+  breakdown JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
